@@ -6,7 +6,7 @@ from routes.user_routes import router as user_router
 
 app = FastAPI()
 
-# ✅ Add CORS Middleware to allow frontend requests
+# Add CORS Middleware to allow frontend requests
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],
@@ -15,10 +15,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ✅ Auto-create tables in PostgreSQL
+# Auto-create tables in PostgreSQL
 Base.metadata.create_all(bind=engine)
 
-# ✅ Register Routes
+# Register Routes
 app.include_router(auth_router, prefix="/auth")
 app.include_router(user_router, prefix="/users")
 
