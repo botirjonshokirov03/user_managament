@@ -25,4 +25,4 @@ class UserResponse(BaseModel):
     created_at: datetime
 
     class Config:
-        from_attributes = True  # ✅ Fix Pydantic V2 error (previously `orm_mode = True`)
+        from_attributes = True 
