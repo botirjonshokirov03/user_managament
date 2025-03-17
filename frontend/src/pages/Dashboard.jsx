@@ -18,10 +18,10 @@ const Dashboard = () => {
   useEffect(() => {
     const debounceTimeout = setTimeout(() => {
       loadUsers();
-    }, 1000); // ✅ Delay API call by 1 second
+    }, 1000);
 
-    return () => clearTimeout(debounceTimeout); // ✅ Cleanup timeout
-  }, [searchQuery, sortOrder]); // ✅ API calls only on search/sort change
+    return () => clearTimeout(debounceTimeout);
+  }, [searchQuery, sortOrder]);
 
   const loadUsers = async () => {
     try {
@@ -43,7 +43,6 @@ const Dashboard = () => {
     }
   };
 
-  // ✅ Ensure `users` is an array before filtering and sorting
   const filteredUsers = (users || [])
     .filter(
       (user) =>
@@ -51,7 +50,6 @@ const Dashboard = () => {
         user.email.toLowerCase().includes(searchQuery.toLowerCase())
     )
     .sort((a, b) => {
-      // ✅ Ensure last_login is a valid date before sorting
       const dateA = new Date(a.last_login).getTime() || 0;
       const dateB = new Date(b.last_login).getTime() || 0;
 
@@ -66,7 +64,6 @@ const Dashboard = () => {
           User Management
         </Typography>
 
-        {/* ✅ Add Search and Sorting */}
         <SearchFilter
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
@@ -74,7 +71,6 @@ const Dashboard = () => {
           setSortOrder={setSortOrder}
         />
 
-        {/* ✅ Pass selected user IDs to the toolbar */}
         <UserToolbar
           users={filteredUsers}
           selectedUsers={selectedUsers}
@@ -83,7 +79,6 @@ const Dashboard = () => {
         />
 
         <Paper>
-          {/* ✅ Ensure `setUsers` updates selection state */}
           <UserTable
             users={filteredUsers}
             selectedUsers={selectedUsers}

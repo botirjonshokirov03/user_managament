@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../stores/authSlice";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
 import { Container, TextField, Button, Typography, Box } from "@mui/material";
+import { loginUser } from "../utils/api";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -18,21 +18,20 @@ const Login = () => {
     }
 
     try {
-      const res = await axios.post("http://127.0.0.1:8000/auth/login", {
+      const res = await loginUser({
         email: email.trim(),
         password: password.trim(),
       });
 
-      console.log("Login Response:", res.data); // ✅ Debugging
-
       if (res.data.access_token) {
-        dispatch(loginSuccess(res.data)); // ✅ Store in Redux
-        navigate("/dashboard"); // ✅ Redirect to dashboard
+        dispatch(loginSuccess(res.data));
+        localStorage.setItem("token", res.data.access_token);
+        navigate("/dashboard");
       } else {
         alert("Login failed! No token received.");
       }
     } catch (error) {
-      console.error("Login failed:", error.response?.data || error.message);
+      console.error("Login failed:", error.response?.data || error);
       alert(error.response?.data?.detail || "Login failed! Check credentials.");
     }
   };
@@ -46,6 +45,7 @@ const Login = () => {
         label="Email"
         fullWidth
         margin="normal"
+        value={email}
         onChange={(e) => setEmail(e.target.value)}
       />
       <TextField
@@ -53,6 +53,7 @@ const Login = () => {
         type="password"
         fullWidth
         margin="normal"
+        value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
       <Button

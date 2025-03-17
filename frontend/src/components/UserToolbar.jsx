@@ -9,11 +9,11 @@ import {
   DialogTitle,
   DialogActions,
 } from "@mui/material";
-import { blockUsers, unblockUsers, deleteUsers } from "../utils/api"; // ✅ Use centralized API
+import { blockUsers, unblockUsers, deleteUsers } from "../utils/api";
 
 const UserToolbar = ({
-  users = [], // ✅ Default empty array to prevent undefined issues
-  selectedUsers = [], // ✅ Default empty array
+  users = [],
+  selectedUsers = [],
   setSelectedUsers,
   refreshUsers,
 }) => {
@@ -21,29 +21,20 @@ const UserToolbar = ({
   const [confirmAction, setConfirmAction] = useState(null);
   const [selectAll, setSelectAll] = useState(false);
 
-  // ✅ Debugging logs
-  useEffect(() => {
-    console.log("Users:", users);
-    console.log("Selected Users:", selectedUsers);
-  }, [users, selectedUsers]);
-
-  // ✅ Keep Select All state in sync with selectedUsers
   useEffect(() => {
     setSelectAll(
       selectedUsers?.length > 0 && selectedUsers.length === users?.length
     );
   }, [selectedUsers, users]);
 
-  // ✅ Toggle Select All / Deselect All
   const handleSelectAllToggle = () => {
     if (selectAll) {
-      setSelectedUsers([]); // Deselect all users
+      setSelectedUsers([]);
     } else {
-      setSelectedUsers(users.map((user) => user.id)); // Select all users
+      setSelectedUsers(users.map((user) => user.id));
     }
   };
 
-  // ✅ Handle API calls for actions
   const handleAction = async (action) => {
     if (!selectedUsers.length) {
       alert("No users selected!");
@@ -56,8 +47,8 @@ const UserToolbar = ({
       if (action === "unblock") await unblockUsers(selectedUsers);
       if (action === "delete") await deleteUsers(selectedUsers);
 
-      refreshUsers(); // Refresh user list after action
-      setSelectedUsers([]); // Reset selection
+      refreshUsers();
+      setSelectedUsers([]);
     } catch (error) {
       console.error("Action failed:", error.response?.data || error.message);
       alert(error.response?.data?.detail || `Failed to ${action} users.`);
@@ -69,7 +60,6 @@ const UserToolbar = ({
 
   return (
     <Box display="flex" alignItems="center" gap={2} marginBottom={2}>
-      {/* ✅ Only show checkbox if users exist */}
       {users.length > 0 && (
         <FormControlLabel
           control={
@@ -108,7 +98,6 @@ const UserToolbar = ({
         {loading ? <CircularProgress size={24} /> : "Delete"}
       </Button>
 
-      {/* ✅ Confirmation Dialog */}
       <Dialog
         open={Boolean(confirmAction)}
         onClose={() => setConfirmAction(null)}
