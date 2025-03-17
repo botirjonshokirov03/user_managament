@@ -15,7 +15,6 @@ const UserTable = ({
   selectedUsers = [],
   setSelectedUsers = () => {},
 }) => {
-  // ✅ Handle individual user selection
   const handleCheckboxChange = useCallback(
     (id) => {
       setSelectedUsers((prevSelected) =>
@@ -27,9 +26,8 @@ const UserTable = ({
     [setSelectedUsers]
   );
 
-  // ✅ Handle Select All / Deselect All
   const handleSelectAllToggle = useCallback(() => {
-    if (users.length === 0) return; // Prevent errors when users are empty
+    if (users.length === 0) return;
 
     setSelectedUsers((prevSelected) =>
       prevSelected.length === users.length ? [] : users.map((u) => u.id)

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import axios from "axios";
-import { Container, TextField, Button, Typography, Box } from "@mui/material";
 import { useNavigate, Link } from "react-router-dom";
+import { Container, TextField, Button, Typography, Box } from "@mui/material";
+import { registerUser } from "../utils/api";
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -11,15 +11,12 @@ const Register = () => {
 
   const handleRegister = async () => {
     try {
-      await axios.post("http://127.0.0.1:8000/auth/register", {
-        name,
-        email,
-        password,
-      });
+      await registerUser({ name, email, password });
       alert("Registration successful! Please log in.");
-      navigate("/login"); // Redirect to Login after successful registration
+      navigate("/login");
     } catch (error) {
-      alert("Registration failed! Try again.");
+      console.error("Registration failed:", error.response?.data || error);
+      alert(error.response?.data?.detail || "Registration failed! Try again.");
     }
   };
 
@@ -32,12 +29,14 @@ const Register = () => {
         label="Name"
         fullWidth
         margin="normal"
+        value={name}
         onChange={(e) => setName(e.target.value)}
       />
       <TextField
         label="Email"
         fullWidth
         margin="normal"
+        value={email}
         onChange={(e) => setEmail(e.target.value)}
       />
       <TextField
@@ -45,6 +44,7 @@ const Register = () => {
         type="password"
         fullWidth
         margin="normal"
+        value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
       <Button
@@ -56,7 +56,6 @@ const Register = () => {
         Register
       </Button>
 
-      {/* Link to Login */}
       <Box textAlign="center" marginTop={2}>
         <Typography variant="body2">
           Already have an account? <Link to="/login">Login here</Link>
