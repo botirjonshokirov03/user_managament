@@ -1,35 +1,63 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Button,
   Box,
   CircularProgress,
+  Checkbox,
+  FormControlLabel,
   Dialog,
   DialogTitle,
   DialogActions,
 } from "@mui/material";
-import axios from "axios";
+import { blockUsers, unblockUsers, deleteUsers } from "../utils/api"; // ✅ Use centralized API
 
-const UserToolbar = ({ selectedUsers, refreshUsers }) => {
+const UserToolbar = ({
+  users = [], // ✅ Default empty array to prevent undefined issues
+  selectedUsers = [], // ✅ Default empty array
+  setSelectedUsers,
+  refreshUsers,
+}) => {
   const [loading, setLoading] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
+  const [selectAll, setSelectAll] = useState(false);
 
+  // ✅ Debugging logs
+  useEffect(() => {
+    console.log("Users:", users);
+    console.log("Selected Users:", selectedUsers);
+  }, [users, selectedUsers]);
+
+  // ✅ Keep Select All state in sync with selectedUsers
+  useEffect(() => {
+    setSelectAll(
+      selectedUsers?.length > 0 && selectedUsers.length === users?.length
+    );
+  }, [selectedUsers, users]);
+
+  // ✅ Toggle Select All / Deselect All
+  const handleSelectAllToggle = () => {
+    if (selectAll) {
+      setSelectedUsers([]); // Deselect all users
+    } else {
+      setSelectedUsers(users.map((user) => user.id)); // Select all users
+    }
+  };
+
+  // ✅ Handle API calls for actions
   const handleAction = async (action) => {
-    if (!selectedUsers || selectedUsers.length === 0) {
+    if (!selectedUsers.length) {
       alert("No users selected!");
       return;
     }
 
     setLoading(true);
-
     try {
-      const res = await axios.post(
-        `http://127.0.0.1:8000/users/${action}`,
-        { user_ids: selectedUsers },
-        { headers: { "Content-Type": "application/json" } }
-      );
+      if (action === "block") await blockUsers(selectedUsers);
+      if (action === "unblock") await unblockUsers(selectedUsers);
+      if (action === "delete") await deleteUsers(selectedUsers);
 
-      console.log(`${action} response:`, res.data);
-      refreshUsers();
+      refreshUsers(); // Refresh user list after action
+      setSelectedUsers([]); // Reset selection
     } catch (error) {
       console.error("Action failed:", error.response?.data || error.message);
       alert(error.response?.data?.detail || `Failed to ${action} users.`);
@@ -41,6 +69,20 @@ const UserToolbar = ({ selectedUsers, refreshUsers }) => {
 
   return (
     <Box display="flex" alignItems="center" gap={2} marginBottom={2}>
+      {/* ✅ Only show checkbox if users exist */}
+      {users.length > 0 && (
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={selectAll}
+              onChange={handleSelectAllToggle}
+              color="primary"
+            />
+          }
+          label={selectAll ? "Deselect All" : "Select All"}
+        />
+      )}
+
       <Button
         variant="contained"
         color="warning"

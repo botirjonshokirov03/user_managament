@@ -1,35 +1,62 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { Container, Typography, Paper } from "@mui/material";
 import Navbar from "../components/Navbar";
 import UserTable from "../components/UserTable";
-import UserToolbar from "../components/Toolbar";
+import UserToolbar from "../components/UserToolbar";
+import SearchFilter from "../components/SearchFilter";
+import { fetchUsers } from "../utils/api";
 import { useSelector } from "react-redux";
 
 const Dashboard = () => {
-  const [users, setUsers] = useState([]); // ✅ Default empty array
-  const [selectedUsers, setSelectedUsers] = useState([]); // ✅ Track selected users
+  const [users, setUsers] = useState([]);
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOrder, setSortOrder] = useState("newest");
+  const [loading, setLoading] = useState(false);
   const token = useSelector((state) => state.auth.token);
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    const debounceTimeout = setTimeout(() => {
+      loadUsers();
+    }, 1000); // ✅ Delay API call by 1 second
 
-  const fetchUsers = async () => {
+    return () => clearTimeout(debounceTimeout); // ✅ Cleanup timeout
+  }, [searchQuery, sortOrder]); // ✅ API calls only on search/sort change
+
+  const loadUsers = async () => {
     try {
-      const res = await axios.get("http://127.0.0.1:8000/users", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      console.log("Fetched Users Data:", res.data);
-
-      setUsers(res.data || []); // ✅ Ensure users is never undefined
-      setSelectedUsers([]); // ✅ Reset selection when data reloads
+      setLoading(true);
+      console.log("Fetching users from API...");
+      const res = await fetchUsers();
+      if (Array.isArray(res.data)) {
+        setUsers(res.data);
+      } else {
+        console.error("⚠️ API returned unexpected data format:", res.data);
+        setUsers([]);
+      }
+      setSelectedUsers([]);
     } catch (error) {
-      console.error("Failed to fetch users", error);
-      alert("Error loading users.");
+      console.error("Failed to fetch users:", error);
+      setUsers([]);
+    } finally {
+      setLoading(false);
     }
   };
+
+  // ✅ Ensure `users` is an array before filtering and sorting
+  const filteredUsers = (users || [])
+    .filter(
+      (user) =>
+        user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => {
+      // ✅ Ensure last_login is a valid date before sorting
+      const dateA = new Date(a.last_login).getTime() || 0;
+      const dateB = new Date(b.last_login).getTime() || 0;
+
+      return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
+    });
 
   return (
     <div>
@@ -39,18 +66,26 @@ const Dashboard = () => {
           User Management
         </Typography>
 
-        {/* ✅ Pass selectedUsers and setSelectedUsers to Toolbar */}
+        {/* ✅ Add Search and Sorting */}
+        <SearchFilter
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          sortOrder={sortOrder}
+          setSortOrder={setSortOrder}
+        />
+
+        {/* ✅ Pass selected user IDs to the toolbar */}
         <UserToolbar
-          users={users} // ✅ Ensure users is always defined
+          users={filteredUsers}
           selectedUsers={selectedUsers}
-          setSelectedUsers={setSelectedUsers} // ✅ Fix `setUsers is not a function` issue
-          refreshUsers={fetchUsers}
+          setSelectedUsers={setSelectedUsers}
+          refreshUsers={loadUsers}
         />
 
         <Paper>
-          {/* ✅ Now properly passes `setUsers` */}
+          {/* ✅ Ensure `setUsers` updates selection state */}
           <UserTable
-            users={users}
+            users={filteredUsers}
             selectedUsers={selectedUsers}
             setSelectedUsers={setSelectedUsers}
           />

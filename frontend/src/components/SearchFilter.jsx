@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { TextField, MenuItem, Box } from "@mui/material";
 
 const SearchFilter = ({

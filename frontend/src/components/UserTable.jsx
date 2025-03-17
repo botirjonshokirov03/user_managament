@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import {
   Table,
   TableBody,
@@ -10,15 +10,31 @@ import {
   Paper,
 } from "@mui/material";
 
-const UserTable = ({ users = [], selectedUsers, setSelectedUsers }) => {
+const UserTable = ({
+  users = [],
+  selectedUsers = [],
+  setSelectedUsers = () => {},
+}) => {
   // ✅ Handle individual user selection
-  const handleCheckboxChange = (id) => {
+  const handleCheckboxChange = useCallback(
+    (id) => {
+      setSelectedUsers((prevSelected) =>
+        prevSelected.includes(id)
+          ? prevSelected.filter((userId) => userId !== id)
+          : [...prevSelected, id]
+      );
+    },
+    [setSelectedUsers]
+  );
+
+  // ✅ Handle Select All / Deselect All
+  const handleSelectAllToggle = useCallback(() => {
+    if (users.length === 0) return; // Prevent errors when users are empty
+
     setSelectedUsers((prevSelected) =>
-      prevSelected.includes(id)
-        ? prevSelected.filter((userId) => userId !== id)
-        : [...prevSelected, id]
+      prevSelected.length === users.length ? [] : users.map((u) => u.id)
     );
-  };
+  }, [users, setSelectedUsers]);
 
   return (
     <TableContainer component={Paper}>
@@ -26,23 +42,19 @@ const UserTable = ({ users = [], selectedUsers, setSelectedUsers }) => {
         <TableHead>
           <TableRow>
             <TableCell>
-              {/* ✅ Only one "Select All" checkbox inside the table */}
-              <Checkbox
-                checked={
-                  selectedUsers.length === users.length && users.length > 0
-                }
-                indeterminate={
-                  selectedUsers.length > 0 &&
-                  selectedUsers.length < users.length
-                }
-                onChange={() =>
-                  setSelectedUsers(
-                    selectedUsers.length === users.length
-                      ? []
-                      : users.map((u) => u.id)
-                  )
-                }
-              />
+              {users.length > 0 && (
+                <Checkbox
+                  checked={
+                    selectedUsers.length === users.length && users.length > 0
+                  }
+                  indeterminate={
+                    selectedUsers.length > 0 &&
+                    selectedUsers.length < users.length
+                  }
+                  onChange={handleSelectAllToggle}
+                  inputProps={{ "aria-label": "Select all users" }}
+                />
+              )}
             </TableCell>
             <TableCell>Name</TableCell>
             <TableCell>Email</TableCell>
@@ -50,19 +62,28 @@ const UserTable = ({ users = [], selectedUsers, setSelectedUsers }) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {users.map((user) => (
-            <TableRow key={user.id}>
-              <TableCell>
-                <Checkbox
-                  checked={selectedUsers.includes(user.id)}
-                  onChange={() => handleCheckboxChange(user.id)}
-                />
+          {users.length > 0 ? (
+            users.map((user) => (
+              <TableRow key={user.id}>
+                <TableCell>
+                  <Checkbox
+                    checked={selectedUsers.includes(user.id)}
+                    onChange={() => handleCheckboxChange(user.id)}
+                    inputProps={{ "aria-label": `Select user ${user.name}` }}
+                  />
+                </TableCell>
+                <TableCell>{user.name}</TableCell>
+                <TableCell>{user.email}</TableCell>
+                <TableCell>{user.status}</TableCell>
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={4} align="center">
+                No users found
               </TableCell>
-              <TableCell>{user.name}</TableCell>
-              <TableCell>{user.email}</TableCell>
-              <TableCell>{user.status}</TableCell>
             </TableRow>
-          ))}
+          )}
         </TableBody>
       </Table>
     </TableContainer>
